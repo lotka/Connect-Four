@@ -1,263 +1,205 @@
 #include <stdio.h>
-#include <stdlib.h>
-   int board[10][10]; //Seven entries will be used horizontally, six vertically. I might use other entries for data.
-   int player;
-   int turn;
 
-   void resetboard(); //Fills it with 0's and 9'
-   void printboard(); //Prints the board
-   void printer(int n); // Auxilary function for printboard, just converts zeros into ASCII
-   void domove();       //Asks for input from console
-   void ai_domove();    //The AI executes a move
-   int gameover();       //Looks for four in a row
-   int random(int max);  // Gives a random number between 1 and INPUT
+int board[100][100];
+int gamemode;
+/*
+   -1 ERROR
+    0 Game in progress
+    1 Game quit by user
+    2 Game over
+*/
 
-main () {
-    int x = 1; //Funky player ticker
-    char s;
+/*Game functions*/
+int mainmenu(void);
 
-    resetboard();
-
-
-
-    while(1) {
-    if(!gameover()) {
-       system("cls");
-
-       player = (1 +((++x) % 2));
-
-       printboard();
+/*Board functions*/
+void gameover(int player);
+void resetboard(void);
+void printboard(void);
+void intformat(int number);
 
 
-       if(player==1)
-       domove();
-
-       if(player==2)
-       ai_domove();
+/* Move functions */
+int getint(int options);
+int player(int p);
 
 
-    ++turn;
-    }
-    else
+main()
+{
+    system("color 3");
+    int turn=1, lastmove;
+
+   resetboard();
+
+    while(1)
     {
-        system("cls");
-        printboard();
-        printf("PLAYER %d WINS!\n", gameover());
-        printf("Play again? (y/n)");
-        scanf("%c", &s);
-        if(s=='n')
+         switch(mainmenu())
+    {
+        case 65:
            return 0;
-        if(s=='y')
-           resetboard();
+        case 0:
+                system("cls");
+                while(1)
+                {
+                  ++turn;
+                  printboard();
+                  player((turn%2)+1);
+                  if(gamemode==65)
+                     break;
+                  system("cls");
+                  gameover((turn%2)+1);
+               }
+        case 1:
+                while(1)
+                {
+                  ++turn;
+                  system("cls");
+                  gameover(1);
+                  gameover(2);
+                  printboard();
+                  player(1);
+                  if(gamemode==65)
+                     break;
+                  ai_move();
+               }
+
     }
+    resetboard();
     }
 
-
 }
 
-int gameover() {
+
+int getint(int options)
+{
+   int i, c=125, move, userinput[1000]={0};
 
 
-   // Horizontal win
-   int i, j, k;
-   for (k=1; k<5; ++k) {
-   for (j=1; j<8; ++j) {
-   for (i=k; i<8; ++i) {
-      if (board[i][j]==1 && board[i+1][j]==1 && board[i+2][j]==1  && board[i+3][j]==1)
-         return 1;
-      if (board[i][j]==2 && board[i+1][j]==2 && board[i+2][j]==2  && board[i+3][j]==2)
-         return 2;
-   }
-   }
+   while(1)
+   {
+   for(i=0; (c=getchar()) != '\n'; ++i)
+   {
+      userinput[i]=c - '0';
    }
 
-   // Vertical win
-   for (k=1; k<5; ++k) {
-   for (i=1; i<8; ++i) {
-   for (j=k; j<8; ++j) {
-      if (board[i][j]==1 && board[i][j+1]==1 && board[i][j+2]==1  && board[i][j+3]==1)
-         return 1;
-      if (board[i][j]==2 && board[i][j+1]==2 && board[i][j+2]==2  && board[i][j+3]==2)
-         return 2;
-   }
-   }
-   }
-   //Positive Diagonal win
-   for (k=1; k<8; ++k) {
-   for (j=1; j<8; ++j) {
-   for (i=k; i<8; ++i) {
-   if (board[i][j]==1 && board[i+1][j+1]==1 & board[i+2][j+2]==1 && board[i+3][j+3]==1)
-      return 1;
-   if (board[i][j]==2 && board[i+1][j+1]==2 & board[i+2][j+2]==2 && board[i+3][j+3]==2)
-      return 2;
-   }
-   }
-   }
-   //Negative Diagonal win
-   for (k=1; k<8; ++k) {
-   for (j=4; j<8; ++j) {
-   for (i=k; i<8; ++i) {
-   if (board[i][j]==1 && board[i+1][j-1]==1 & board[i+2][j-2]==1 && board[i+3][j-3]==1)
-      return 1;
-   if (board[i][j]==2 && board[i+1][j-1]==2 & board[i+2][j-2]==2 && board[i+3][j-3]==2)
-      return 2;
-   }
-   }
-   }
+   gamemode=userinput[0];
+
+   if(c=='\n' && i==0)
+      return getint(options);
 
 
-   return 0;
+   if(userinput[0]>-1 && userinput[0]<=options)
+      return userinput[0];
+
+   if(userinput[0]==65)
+   {
+       gamemode=65;
+       return 65;
+   }
+
+   printf("\nunrecognised option %d \n", userinput[0]);
+   }
 }
 
-void printer(int n) {
-   if (n==0)
-      printf("º ");
-   if (n==1)
-      printf("º.");
-   if (n==2)
-      printf("º›");
+int mainmenu(void)
+{
+    int gametype;
+    char userinput[10];
+    char *modes[2]={"Human vs Human", "Human vs AI"};
+    printf("\nC4\n Choose game mode: \n 0. Human vs Human \n 1. Human vs AI \n(Press q to exit at anytime)\n:");
+
+    gametype=getint(2);
+    if(gametype==65)
+       return 65;
+
+    printf("\nYOU CHOSE %d %s\n",gametype, modes[gametype]);
+
+    return gametype;
 }
 
-void domove(){
-   int move=0;
-   int i=0;
-   int marker;
+int player(int player)
+{
+    int move=0, i;
+
+    move=getint(7);
 
 
-   if (player == 1)
-      marker = 1;
-   if (player == 2)
-      marker = 2;
-  printf("\n  Enter your move player %d:\n>", player);
 
-   scanf("%d", &move);
 
-//Awesome
+    for(i=6; i>0 && board[i][move] == 0 ; --i)
+       ;
 
-   i=7;
-   while(board[move][i]==0)
-       --i;
     ++i;
-    board[move][i]=marker;
+
+    board[i][move]=player;
+
+
+    return 0;
+}
+
+
+void resetboard(void)
+{
+    int i, j;
+
+    for(i=0; i<100; ++i)
+       for(j=0; j<100; ++j)
+          board[i][j]=0;
+
+
+//   board[2][2]=board[3][3]=board[4][4]=board[4][5]=1;
+
+    for(i=0; i<100; ++i)
+       board[0][i]=100;
+    for(i=0; i<100; ++i)
+       board[i][0]=100;
+    for(i=0; i<100; ++i)
+       board[i][8]=100;
 
 }
 
-void printboard(){
-   int i, j;
+void printboard(void)
+{
+    int i, j;
 
-   printf("    1 2 3 4 5 6 7 \n");
-   printf("   ÉÍËÍËÍËÍËÍËÍËÍ»\n");
+    for(i=6; i>0; --i)
+    {
+       printf("\n_____________________\n");
+       for(j=1;j<8; ++j)
+          intformat(board[i][j]);
+    }
+    printf("\n_____________________\n");
+    printf("\n\n 1  2  3  4  5  6  7\n");
 
-
-   for (i=6; i>0; --i) {
-
-
-       if(i<6)
-       printf("   ÌÍÎÍÎÍÎÍÎÍÎÍÎÍ¹\n");
-
-
-       printf("   ");
-
-
-
-       for (j=1; j<8; ++j){
-          printer(board[j][i]);
-
-
-          if(j==7)
-            printf("º");
-
-
-
-
-          }
-
-    printf("\n");
-       }
-      printf("   ÈÍÊÍÊÍÊÍÊÍÊÍÊÍ¼");
-
-         printf("\n    1 2 3 4 5 6 7 \n");
-                 printf("    It is turn: %d\n", turn);
 }
 
-void resetboard(){
-   int i, j;
-   turn=1;
-       player = 1;
-
-
-   for (i=0; i<10; ++i) {
-
-      for (j=0; j<10; ++j)
-         board[i][j]=0;
-   }
-
-   //board[1][1]=1;
-   //board[7][1]=2;
-   //board[7][6]=3;
-   //board[1][6]=4;
-
-   for(i=0; i<10;++i) {
-   board[0][i]=9;
-   board[i][0]=9;
-   board[8][i]=9;
-}
+void intformat(int p)
+{
+    if(p==1)
+      printf(" #|");
+    if(p==2)
+      printf(" $|");
+    if(p==0)
+      printf("  |");
 }
 
-void ai_domove() {
 
-   int i, j, k;
-   int move;
-   int marker=2;
+void gameover(int player)
+{
+    int i, j;
 
-   //first 2 turns are random
-
-   if(turn<5)
-      move=random(7);
-
-   /* Big if statement*/
-   if(turn>= 5) {
-   //blocking horizontal
-      for (k=1; k<8; ++k) {
-      for (j=1; j<8; ++j) {
-      for (i=k; i<8; ++i) {
-         if (board[i][j]==1 && board[i+1][j]==1) {
-            if(random(2)-1)
-               move=i-1;
-            else
-               move=i+2;
-            i=j=k=10;
-
-   }
-   }
-   }
-   }
-   }
-
-
-   if(move==0)
-   ++move;
-   if(move==8)
-   --move;
-
-
-   //Does the move, all this needs is a move input
-
-   i=7;
-   while(board[move][i]==0)
-       --i;
-    ++i;
-    board[move][i]=marker;
-}
-
-int random(int max){
-   //Random number between 1 and INPUT
-   int number;
-   while(1) {
-      number=rand();
-      if (number <= max && number >= 1)
-         return number;
-   }
-
-
+    for(i=0;i<10;++i)
+    {
+        for(j=0;j<10;++j)
+        {
+            if(board[i][j]==player && board[i][j+1]==player && board[i][j+2]==player && board[i][j+3]==player)
+               printf("HORIZONTAL WIN PLAYER %d ", player);
+            if(board[i][j]==player && board[i+1][j]==player && board[i+2][j]==player && board[i+3][j]==player)
+               printf("VERTICAL WIN PLAYER %d ", player);
+            if(board[i][j]==player && board[i+1][j+1]==player && board[i+2][j+2]==player && board[i+3][j+3]==player)
+               printf("DIAGONAL WIN PLAYER %d ", player);
+            if(board[i][j]==player && board[i-1][j+1]==player && board[i-2][j+2]==player && board[i-3][j+3]==player)
+               printf("ANTIDIAGONAL WIN PLAYER %d ", player);
+        }
+    }
 }
