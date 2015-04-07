@@ -1,2 +1,2 @@
-ASCII Connect-Four.
+ASCII Connect-Four. (Uses a few horrible windows system calls)
 Should be able to beat you every now and then. 
